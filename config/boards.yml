@@ -1,0 +1,15 @@
+shoop:
+  getURL: http://dax.sveetch.net/tribune/remote.xml
+  alias: "sveetch,dax"
+
+dlfp:
+  getURL: http://linuxfr.org/board/index.xml
+
+batavie:
+  getURL: http://batavie.leguyader.eu/remote.xml
+
+euromussels:
+  getURL: http://euromussels.eu/?q=tribune.xml
+
+see:
+  getURL: http://tout.essaye.sauf.ca/tribune.xml
