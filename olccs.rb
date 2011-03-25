@@ -17,7 +17,6 @@ require_relative 'lib/es.rb'
 require_relative 'lib/post.rb'
 require_relative 'lib/board.rb'
 
-
 EM.synchrony do
   class Settings
     include Singleton
@@ -33,7 +32,7 @@ EM.synchrony do
       
       @boards = Hash.new
       config_boards.each_pair do |b,c|
-        @boards[b] = Board.new(b,c['getURL'],'')
+        @boards[b] = Board.new(b,c['getURL'],c['postURL'])
       end
 
     end
@@ -79,8 +78,18 @@ EM.synchrony do
       }.resume
     end
  
-    apost '/:n/post' do
-      
+    apost '/:n/post' do |n|
+      content_type :text
+      puts 1
+      Fiber.new {
+        puts 2
+        result = settings.boards[n].post(request.cookies, request.user_agent)
+        puts 3
+        body do
+          result
+        end
+       
+      }.resume
     end
    
     get '/' do

@@ -86,10 +86,23 @@ class Board
   end
 
 
-  def post(headers)
-    url = 
-  end
+  def post(cookies, ua)
+    # c = ""
+    # cookies.each_pair { |c,v|
+    #   c = 
+    puts cookies
+    url = @postURL
+    b = { :body =>
+      { :content => "test"},
+      :head =>
+      { "Referer" => @postURL, "Cookie" => "shoop_sessionid=2623c9095f382aced8f0ad0a26a81df2", "User-Agent" => "TOTO COINCOIN"}
+    }
 
+    r = EventMachine::HttpRequest.new("#{@postURL}").post(b)
+    pp r 
+    return r.response
+  end
+    
   def index
     posts = []
     last_before = @last
