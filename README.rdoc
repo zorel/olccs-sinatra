@@ -1,0 +1,9 @@
+= Welcome on olcc server readme
+
+Online Coincoin Server est composé de:
+* Un programme ruby qui inclu:
+** un serveur web qui sert les remote.xml
+** un client web qui fetch les remote.xml des tribunes
+** un scheduler qui appelle régulièrement le moteur d'indexation
+** une interface avec ElasticSearch pour indexer le contenu des backend des tribunes
+* Un elasticsearch comme système de stockage des données
