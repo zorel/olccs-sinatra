@@ -1,16 +1,16 @@
 = Welcome on olcc server readme
 
+Online Coincoin Server permet de remplacer les backend.php et post.php en ajoutant une couche serveur qui va chercher les remote.xml des diffÃ©rentes tribunes, indexe les posts et remet Ã  disposition des backend en json ou xml.
 
-Online Coincoin Server permet de remplacer les backend.php et post.php en ajoutant une couche serveur qui va chercher les remote.xml des différentes tribunes, indexe les posts et remet à disposition des backend en json ou xml.
+Les buts sont de palier les problÃ¨mes de lenteur de certaines tribunes, disposer d'un systÃ¨me de stockage souple, d'une possibilitÃ©s de recherche avancÃ©ee sur les posts archivÃ©s.
 
-Les buts sont de palier les problèmes de lenteur de certaines tribunes, disposer d'un système de stockage souple, d'une possibilité de recherche avancéee sur les posts archivés.
+On pourra par exemple construire des backends multitribunes, avoir des bigornophones cross tribunes, des bloub detector de pointe, tout en ayant un rendu rapide des remote sur les tribunes les plus lentes, et ainsi Ã©viter le croixroutage dans olcc, et amÃ©liorer la charge sur les serveurs legacy par la baisse du nombre des requÃªtes.
 
-On pourra par exemple construire des backends multitribunes, avoir des bigornophones cross tribunes, des bloub detector de pointe, tout en ayant un rendu rapide des remote sur les tribunes les plus lentes, et ainsi éviter le croixroutage dans olcc, et améliorer la charge sur les serveurs legacy par la baisse du nombre des requêtes.
-
-Online Coincoin Server est composé de:
+Online Coincoin Server est composÃ© de:
 * Un programme ruby qui inclu:
-** un serveur web qui sert les remote.xml
-** un client web qui fetch les remote.xml des tribunes
-** un scheduler qui appelle régulièrement le moteur d'indexation
-** une interface avec ElasticSearch pour indexer le contenu des backend des tribunes
-* Un elasticsearch comme système de stockage des données
+ * un serveur web qui sert les remote.xml
+ * un client web qui fetch les remote.xml des tribunes
+ * un scheduler qui appelle rÃ©guliÃ¨rement le moteur d'indexation
+ * une interface avec ElasticSearch pour indexer le contenu des backend des tribunes
+* Un elasticsearch comme systÃ¨me de stockage des donnÃ©ees avec indexation
+
