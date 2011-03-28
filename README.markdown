@@ -9,10 +9,10 @@ On pourra par exemple construire des backends multitribunes, avoir des bigornoph
 Online Coincoin Server est composé de:
  
 *  Un programme ruby qui inclut:
- * un serveur web qui sert les remote.xml
- * un client web qui fetch les remote.xml des tribunes
- * un scheduler qui appelle régulièrement le moteur d'indexation
- * une interface avec ElasticSearch pour indexer le contenu des backend des tribunes
+  * un serveur web qui sert les remote.xml
+  * un client web qui fetch les remote.xml des tribunes
+  * un scheduler qui appelle régulièrement le moteur d'indexation
+  * une interface avec ElasticSearch pour indexer le contenu des backend des tribunes
 * Un elasticsearch comme système de stockage des donnéees avec indexation
  
 ## Le programme ruby ##
@@ -21,7 +21,7 @@ Le programme Ruby est (pour l'instant) écrit avec les librairies principales su
 
 * Thin pour la partie serveur Web (http://code.macournoyer.com/thin/)
 * sinatra pour la partie framework web (http://www.sinatrarb.com)
-* EventMachine et Synchrony pour la partie framework I/O asynchrone (http://rubyeventmachine.com/ et https://github.com/igrigorik/em-synchrony)
+* EventMachine et Synchrony pour la partie framework I/O asynchrone (http://rubyeventmachine.com/ et https://github.com/igrigorik/em-synchrony). em-synchrony implique l'utilisation de ruby 1.9 pour la gestion des Fiber.
 * Nokogiri pour le parsing et le rendu xml (http://nokogiri.org/)
 * JSON pour le parsing json (http://flori.github.com/json/) 
 
@@ -42,3 +42,21 @@ Un espèce de moteur noSQL basé sur un stockage Lucene et interropérable grace
 Chaque tribune dispose de son index, lui même décomposé en type de document (pour l'instant qu'un seul: post, mais on pourrait imaginer stocker/indexer des fortunes par exemple), qui contient les documents indexés. Individuellement, chaque élément est récupérable par un appel GET sur <tribune>/post/<id>.
 
 Pour la reconstruction de documents plus complexes, comme un remote, on effectue une recherche (appel GET avec données de la requête en json dans un paramètre). La réponse est ensuite interprétée dans le programme ruby.
+
+Toutes les données sont disponibles via l'interface REST du produit, qui pour des raisons de confidentialité ne sera en écoute que sur l'adresse de loopback de la machine. Les accès devront être faits via le serveur Ruby.
+
+Le mapping des données est le suivant:
+
+  {
+      "post" : {
+          "properties" : {
+              "board" : {"type" : "string", "index" : "not_analyzed"},
+              "time" : {"type" : "date", "format" : "yyyyMMddHHmmss"},
+              "info" : {"type" : "string", "index" : "not_analyzed"},  
+	      "login" : {"type" : "string", "index" : "not_analyzed"},
+	      "message" : {"type" : "string", "analyzer" : "default"}
+           }
+      }
+  }
+
+L'analyseur default est configuré pour être du snowball en français.
