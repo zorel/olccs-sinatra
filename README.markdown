@@ -47,16 +47,16 @@ Toutes les données sont disponibles via l'interface REST du produit, qui pour d
 
 Le mapping des données est le suivant:
 
-  {
-      "post" : {
-          "properties" : {
-              "board" : {"type" : "string", "index" : "not_analyzed"},
-              "time" : {"type" : "date", "format" : "yyyyMMddHHmmss"},
-              "info" : {"type" : "string", "index" : "not_analyzed"},  
-	      "login" : {"type" : "string", "index" : "not_analyzed"},
-	      "message" : {"type" : "string", "analyzer" : "default"}
-           }
-      }
-  }
+    {
+        "post" : {
+               "properties" : {
+               "board" : {"type" : "string", "index" : "not_analyzed"},
+               "time" : {"type" : "date", "format" : "yyyyMMddHHmmss"},
+               "info" : {"type" : "string", "index" : "not_analyzed"},
+               "login" : {"type" : "string", "index" : "not_analyzed"},
+               "message" : {"type" : "string", "analyzer" : "default"}
+               }
+        }
+    }
 
 L'analyseur default est configuré pour être du snowball en français.
