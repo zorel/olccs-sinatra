@@ -1,21 +1,12 @@
 shoop:
   getURL: http://dax.sveetch.net/tribune/remote.xml
   postURL: http://dax.sveetch.net/tribune/post.xml
+  lastIdParameter: last
+  postParameter: content
   alias: "sveetch,dax"
-
-dlfp:
-  getURL: http://linuxfr.org/board/index.xml
-  postURL: http://linuxfr.org/board/index.xml
-
-batavie:
-  getURL: http://batavie.leguyader.eu/remote.xml
-  postURL: http://linuxfr.org/board/index.xml
-
 
 euromussels:
   getURL: http://euromussels.eu/?q=tribune.xml
-  postURL: http://linuxfr.org/board/index.xml
-
-see:
-  getURL: http://tout.essaye.sauf.ca/tribune.xml
-  postURL: http://linuxfr.org/board/index.xml
+  postURL: http://euromussels.eu/?q=tribune/post
+  lastIdParameter: last_id
+  postParameter: message

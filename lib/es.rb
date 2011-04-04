@@ -15,7 +15,7 @@ class ES
   attr_writer :address
 
   def initialize
-    @address = Settings.instance.es
+    @address = Configuration.instance.es
   end
 
   def query(idx, q)
@@ -35,7 +35,7 @@ class ES
     multi = EventMachine::Synchrony::Multi.new
       
     posts.each do |p|
-      multi.add p.post_id, EventMachine::HttpRequest.new("#{@address}/#{idx}/post/#{p.post_id}").post({ :body => p.to_json, :query => { :op_type => "create" } })
+      multi.add p.post_id, EventMachine::HttpRequest.new("#{@address}/#{idx}/post/#{p.post_id}?refresh=true").post({ :body => p.to_json, :query => { :op_type => "create" } })
     end
 
     res = multi.perform

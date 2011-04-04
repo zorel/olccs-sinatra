@@ -3,14 +3,17 @@ require 'httparty'
 require 'nokogiri'
 require 'json'
 
+
 require 'em-synchrony/em-http'
+require 'em-synchrony'
+
 require 'pp'
 require_relative 'es.rb'
 
 class Board
   include HTTParty
   
-  attr_reader :name
+  attr_reader :name, :getURL, :postURL
   
    #format :xml
   parser(
@@ -19,18 +22,18 @@ class Board
          end
          )
 
-  def initialize(name, getURL, postURL)
+  def initialize(name, getURL, postURL, postParameter, lastid)
     @getURL = getURL
     @postURL = postURL
     @name = name
-
-    @cache_j = nil
-    @cache_x = nil
+    @lastid = lastid
+    @postParameter = postParameter
 
     lastorig = self.class.get(@getURL).xpath('/board/post[position()=1]/@id').to_s.to_i
     
-    if JSON.parse(backend(1))['hits'] != nil
-      lastlocal = JSON.parse(backend(1))['hits']['hits'][0]['_source']['id']
+    b = backend(1)
+    if JSON.parse(b)['hits'] != nil
+      lastlocal = JSON.parse(b)['hits']['hits'][0]['_source']['id']
       @last = lastlocal 
     else
       @last = lastorig-200
@@ -39,10 +42,8 @@ class Board
     puts "Board #{@name} initialized, last origin= #{lastorig}, last local= #{lastlocal}, last= #{@last}"
   end
 
-  def backend(s=150)
-    if s==150 and @cache_j != nil then
-      return @cache_j
-    end
+  def backend(s=10)
+    puts "~~~~~~~~~~~~~~~~~~~~~~~~~##~~BEGIN BACKEND ~~##~~~~~~~~~~~~~~~~~~~~~~~~~~"
     q = {
       "query" => {
         "match_all" => {}
@@ -52,19 +53,16 @@ class Board
                 ],
       :size => s
     }.to_json
-
-    @cache_j = ES.new.query(@name,q)
-    return @cache_j
-        
+    puts q
+    puts "~~~~~~~~~~~~~~~~~~~~~~~~~##~~END BACKEND ~~##~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    r = ES.new.query(@name,q)
+    r
   end
 
   def xml
-    if @cache_x != nil then
-      return @cache_x
-    end
     @posts = JSON.parse(backend)['hits']['hits']
     builder = Nokogiri::XML::Builder.new do |xml|
-      xml.boards(:site => "test") {
+      xml.board(:site => "test") {
         @posts.each { |p|
           i = p['_source']
           xml.post(:id => i['id'], :time => i['time']) {
@@ -81,34 +79,46 @@ class Board
         }
       }
     end
-    @cache_x = builder.to_xml
-    return @cache_x
+    return builder.to_xml
   end
 
 
-  def post(cookies, ua)
-    # c = ""
-    # cookies.each_pair { |c,v|
-    #   c = 
-    puts cookies
+  def post(cookies, ua, content)
+    puts "{{{{{{{{{{{{{{{{{{{{{{{{{{{ BEGIN POST #{@name} }}}}}}}}}}}}}}}}}}}}}}}}}}}"
+    t = Time.new
+    puts "1 #{Time.new-t}"
     url = @postURL
-    b = { :body =>
-      { :content => "test"},
-      :head =>
-      { "Referer" => @postURL, "Cookie" => "shoop_sessionid=2623c9095f382aced8f0ad0a26a81df2", "User-Agent" => "TOTO COINCOIN"}
+    puts "2 #{Time.new-t}"
+    b = {
+      :body => { @postParameter.to_sym => content.rpartition('=')[2]},
+      :head => {
+        "Referer" => @postURL,
+        "Cookie" => cookies,
+        "User-Agent" => ua}
     }
-
+    puts "3  #{Time.new-t} => #{@postURL}"
+    #r = self.class.post(@postURL, b)
     r = EventMachine::HttpRequest.new("#{@postURL}").post(b)
-    pp r 
-    return r.response
+    puts "4 #{Time.new-t}"
+    pp r
+    puts "5 #{Time.new-t}"
+    index
+    #sleep 2
+    puts "6 #{Time.new-t}"
+    puts "{{{{{{{{{{{{{{{{{{{{{{{{{{{ END POST #{@name} }}}}}}}}}}}}}}}}}}}}}}}}}}}"
+    return "Hello plop"
   end
     
   def index
+    puts "################# BEGIN INDEX #######################"
     posts = []
     last_before = @last
     t1 = Time.new
-    response = Nokogiri::XML(EventMachine::HttpRequest.new("#{@getURL}").get({ :query => {:last => @last}}).response)
-    puts "#{name} => #{Time.new - t1}"
+    r = EventMachine::HttpRequest.new("#{@getURL}").get.response
+        response = Nokogiri::XML(r)
+    # { :query => {@lastid.to_sym => @last}}
+    puts "#{name} => #{Time.new - t1}, #{getURL}"
+    
     response.xpath('/board/post').each do |p|
       pid = p.xpath("@id").to_s.to_i
       if pid > last_before then
@@ -126,9 +136,8 @@ class Board
 
     if !posts.nil? and posts.size > 0 then
       puts "=================================== #{@name} ====================> #{posts.size}"
-      @cache_j = nil
-      @cache_x = nil
     end
+    puts "################# END INDEX #######################"
     ES.new.index(@name,posts)
   end
 end
