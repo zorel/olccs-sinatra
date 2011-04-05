@@ -12,11 +12,21 @@ require 'json'
 require 'eventmachine'
 require 'em-synchrony'
 
+require 'log4r'
+include Log4r
+
 require 'pp'
 
 require_relative 'lib/es.rb'
 require_relative 'lib/post.rb'
 require_relative 'lib/board.rb'
+
+log = Logger.new("olccs")
+
+o = RollingFileOutputter.new("f1", :filename => "./olccs.log", :maxsize => 1048576, :maxtime => 86400)
+o.formatter = PatternFormatter.new(:pattern => "[%l] %d :: %m")
+log.outputters << o
+
 
 class Configuration
   include Singleton
@@ -24,6 +34,7 @@ class Configuration
   attr_reader :boards, :es
   
   def init
+    log = Log4r::Logger['olccs']
     config_global = YAML.load_file('config/config.yml')
     config_boards = YAML.load_file('config/boards.yml')
     
@@ -34,10 +45,13 @@ class Configuration
     config_boards.each_pair do |b,c|
       @boards[b] = Board.new(b,c['getURL'],c['postURL'], c['postParameter'], c['lastIdParameter'] || "last")
       @boards[b].index
+      log.info("Board #{b} initialized")
+
     end
     
   end
 end
+
 
 EM.synchrony do
 
@@ -47,7 +61,7 @@ EM.synchrony do
     Configuration.instance.boards.each_pair do |b,c|
       Fiber.new {
         new,total,secs = c.index
-        puts "#{c.name} indexed in #{secs} seconds, #{new} new posts"
+        log.info "#{c.name} indexed in #{secs} seconds, #{new} new posts"
       }.resume
     end      
   end
@@ -84,7 +98,8 @@ EM.synchrony do
     end
 
     get '/backend.php' do
-      puts "+++++++++++++++++++++++++++++++++++++> BACKEND for #{params[:url]}"
+      log = Log4r::Logger['olccs']
+      log.debug "+> BACKEND for #{params[:url]}"
       content_type :xml
       b = settings.boards.select { |k, v| v.getURL == params[:url] }
       result = b.to_a[0][1].xml 
@@ -92,7 +107,8 @@ EM.synchrony do
     end
 
     post '/post.php' do
-      puts "++++++++++++++++++++++++++++++++++++++> POST for #{params[:posturl]}"
+      log = Log4r::Logger['olccs']
+      log.debug "+> POST for #{params[:posturl]}"
       content_type :text
       b = settings.boards.select { |k, v| v.postURL == params[:posturl] }.to_a[0][1]
       b.post(params[:cookie], params[:ua], params[:postdata])

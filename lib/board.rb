@@ -3,6 +3,8 @@ require 'httparty'
 require 'nokogiri'
 require 'json'
 
+require 'log4r'
+include Log4r
 
 require 'em-synchrony/em-http'
 require 'em-synchrony'
@@ -23,6 +25,7 @@ class Board
          )
 
   def initialize(name, getURL, postURL, postParameter, lastid)
+    log = Log4r::Logger['olccs']
     @getURL = getURL
     @postURL = postURL
     @name = name
@@ -39,11 +42,12 @@ class Board
       @last = lastorig-200
     end
 
-    puts "Board #{@name} initialized, last origin= #{lastorig}, last local= #{lastlocal}, last= #{@last}"
+    log.info "Board #{@name} initialized, last origin= #{lastorig}, last local= #{lastlocal}, last= #{@last}"
   end
 
-  def backend(s=10)
-    puts "~~~~~~~~~~~~~~~~~~~~~~~~~##~~BEGIN BACKEND ~~##~~~~~~~~~~~~~~~~~~~~~~~~~~"
+  def backend(s=150)
+    log = Log4r::Logger['olccs']
+    log.debug "##~~BEGIN BACKEND ~~##"
     q = {
       "query" => {
         "match_all" => {}
@@ -53,8 +57,8 @@ class Board
                 ],
       :size => s
     }.to_json
-    puts q
-    puts "~~~~~~~~~~~~~~~~~~~~~~~~~##~~END BACKEND ~~##~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    log.debug q
+    log.debug "##~~END BACKEND ~~##"
     r = ES.new.query(@name,q)
     r
   end
@@ -84,41 +88,33 @@ class Board
 
 
   def post(cookies, ua, content)
-    puts "{{{{{{{{{{{{{{{{{{{{{{{{{{{ BEGIN POST #{@name} }}}}}}}}}}}}}}}}}}}}}}}}}}}"
-    t = Time.new
-    puts "1 #{Time.new-t}"
+    log = Log4r::Logger['olccs']
+    log.debug "##~~ BEGIN POST #{@name} ~~##"
+
     url = @postURL
-    puts "2 #{Time.new-t}"
+    c = content.gsub('#{plus}#','+').gsub('#{amp}#','&').gsub('#{dcomma}#',';').gsub('#{percent}#','%')
     b = {
-      :body => { @postParameter.to_sym => content.rpartition('=')[2]},
+      :body => { @postParameter.to_sym => c[c.index("=")+1..-1]},
       :head => {
         "Referer" => @postURL,
         "Cookie" => cookies,
         "User-Agent" => ua}
     }
-    puts "3  #{Time.new-t} => #{@postURL}"
-    #r = self.class.post(@postURL, b)
     r = EventMachine::HttpRequest.new("#{@postURL}").post(b)
-    puts "4 #{Time.new-t}"
-    pp r
-    puts "5 #{Time.new-t}"
     index
-    #sleep 2
-    puts "6 #{Time.new-t}"
-    puts "{{{{{{{{{{{{{{{{{{{{{{{{{{{ END POST #{@name} }}}}}}}}}}}}}}}}}}}}}}}}}}}"
+    log.debug "##~~ END POST #{@name} ~~##"
     return "Hello plop"
   end
     
   def index
-    puts "################# BEGIN INDEX #######################"
+    log = Log4r::Logger['olccs']
+    log.debug "##~~ BEGIN INDEX ~~##"
     posts = []
     last_before = @last
-    t1 = Time.new
-    r = EventMachine::HttpRequest.new("#{@getURL}").get.response
-        response = Nokogiri::XML(r)
-    # { :query => {@lastid.to_sym => @last}}
-    puts "#{name} => #{Time.new - t1}, #{getURL}"
-    
+
+    r = EventMachine::HttpRequest.new("#{@getURL}").get({ :query => {@lastid.to_sym => @last}}).response
+    response = Nokogiri::XML(r)
+
     response.xpath('/board/post').each do |p|
       pid = p.xpath("@id").to_s.to_i
       if pid > last_before then
@@ -135,9 +131,9 @@ class Board
     end
 
     if !posts.nil? and posts.size > 0 then
-      puts "=================================== #{@name} ====================> #{posts.size}"
+      log.debug "== #{@name} ==> #{posts.size}"
     end
-    puts "################# END INDEX #######################"
+    log.debug "##~~ END INDEX ~~##"
     ES.new.index(@name,posts)
   end
 end
