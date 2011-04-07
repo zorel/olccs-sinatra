@@ -45,26 +45,43 @@ class Board
     log.info "Board #{@name} initialized, last origin= #{lastorig}, last local= #{lastlocal}, last= #{@last}"
   end
 
-  def backend(s=150)
+  def backend(last, s=1000)
     log = Log4r::Logger['olccs']
     log.debug "##~~BEGIN BACKEND ~~##"
-    q = {
-      "query" => {
-        "match_all" => {}
-      },
-      "sort" => [
-                 {"id" => {:reverse => true}}
-                ],
-      :size => s
-    }.to_json
-    log.debug q
+    log.debug "last => {#{last}}"
+    if last != nil then
+      q= {
+        "query" => {
+          "range" => {
+            "id" => { 
+              "from" => last
+            }
+          }
+        },
+        "sort" => [
+                   {"id" => {:reverse => true}}
+                  ],
+        "size" => s
+      }
+    else
+      q = {
+        "query" => {
+          "match_all" => {}
+        },
+        "sort" => [
+                   {"id" => {:reverse => true}}
+                  ],
+        "size" => s
+      }
+    end
+    log.debug q.to_json
     log.debug "##~~END BACKEND ~~##"
-    r = ES.new.query(@name,q)
+    r = ES.new.query(@name,q.to_json)
     r
   end
 
-  def xml
-    @posts = JSON.parse(backend)['hits']['hits']
+  def xml(last)
+    @posts = JSON.parse(backend(last))['hits']['hits']
     builder = Nokogiri::XML::Builder.new do |xml|
       xml.board(:site => "test") {
         @posts.each { |p|

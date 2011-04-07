@@ -1,5 +1,7 @@
 require 'singleton'
 
+require 'uri'
+require 'cgi'
 require 'fiber'
 require 'rack/fiber_pool'
 
@@ -52,7 +54,6 @@ class Configuration
   end
 end
 
-
 EM.synchrony do
 
   Configuration.instance.init
@@ -98,19 +99,35 @@ EM.synchrony do
     end
 
     get '/backend.php' do
+      content_type :xml
+
       log = Log4r::Logger['olccs']
       log.debug "+> BACKEND for #{params[:url]}"
-      content_type :xml
-      b = settings.boards.select { |k, v| v.getURL == params[:url] }
-      result = b.to_a[0][1].xml 
+
+      
+
+
+      board = URI.parse(params[:url])
+      board_name = board.host
+      board_query = board.query
+      log.debug "+> #{board_query}"
+      l = CGI.parse(board_query)['last'][0]
+      if l==nil or l == "" then
+        l = -1
+      end
+        
+      b = settings.boards.select { |k, v| URI.parse(v.getURL).host == board_name }
+      result = b.to_a[0][1].xml(l) 
       body result
     end
 
     post '/post.php' do
+      content_type :text
       log = Log4r::Logger['olccs']
       log.debug "+> POST for #{params[:posturl]}"
-      content_type :text
-      b = settings.boards.select { |k, v| v.postURL == params[:posturl] }.to_a[0][1]
+
+      board_name = URI.parse(params[:posturl]).host
+      b = settings.boards.select { |k, v| URI.parse(v.postURL).host == board_name }.to_a[0][1]
       b.post(params[:cookie], params[:ua], params[:postdata])
       body "plop"
     end
