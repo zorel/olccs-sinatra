@@ -15,7 +15,8 @@ require 'eventmachine'
 require 'em-synchrony'
 
 require 'log4r'
-include Log4r
+require 'logger'
+class ::Logger; alias_method :write, :<<; end
 
 require 'pp'
 
@@ -23,10 +24,10 @@ require_relative 'lib/es.rb'
 require_relative 'lib/post.rb'
 require_relative 'lib/board.rb'
 
-log = Logger.new("olccs")
+log = Log4r::Logger.new("olccs")
 
-o = RollingFileOutputter.new("f1", :filename => "./olccs.log", :maxsize => 1048576, :maxtime => 86400)
-o.formatter = PatternFormatter.new(:pattern => "[%l] %d :: %m")
+o = Log4r::RollingFileOutputter.new("f1", :filename => "./olccs.log", :maxsize => 1048576, :maxtime => 86400)
+o.formatter = Log4r::PatternFormatter.new(:pattern => "[%l] %d :: %m")
 log.outputters << o
 
 
@@ -69,8 +70,10 @@ EM.synchrony do
 
   class Olccs < Sinatra::Base
     
+
     use Rack::FiberPool
-    use Rack::CommonLogger
+    use Rack::CommonLogger, Logger.new('access.log', "weekly")
+    use Rack::Deflater
     use Rack::Lint
     set :root, File.dirname(__FILE__) + '/static'
 
@@ -104,18 +107,22 @@ EM.synchrony do
       log = Log4r::Logger['olccs']
       log.debug "+> BACKEND for #{params[:url]}"
 
-      
-
-
       board = URI.parse(params[:url])
       board_name = board.host
       board_query = board.query
       log.debug "+> #{board_query}"
-      l = CGI.parse(board_query)['last'][0]
-      if l==nil or l == "" then
-        l = -1
+      if !board_query.nil? then
+        lparam = CGI.parse(board_query)['last']
+        if !lparam.nil? then 
+          l = CGI.parse(board_query)['last'][0]
+          if l.nil? or l == "" then
+            l = -1
+          end
+        else
+          l = -1
+        end
       end
-        
+
       b = settings.boards.select { |k, v| URI.parse(v.getURL).host == board_name }
       result = b.to_a[0][1].xml(l) 
       body result
@@ -127,7 +134,10 @@ EM.synchrony do
       log.debug "+> POST for #{params[:posturl]}"
 
       board_name = URI.parse(params[:posturl]).host
-      b = settings.boards.select { |k, v| URI.parse(v.postURL).host == board_name }.to_a[0][1]
+      b = settings.boards.select { |k, v|
+        log.debug "+> #{v.postURL}"
+        URI.parse(v.postURL).host == board_name
+      }.to_a[0][1]
       b.post(params[:cookie], params[:ua], params[:postdata])
       body "plop"
     end

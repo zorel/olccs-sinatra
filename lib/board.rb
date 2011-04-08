@@ -45,7 +45,7 @@ class Board
     log.info "Board #{@name} initialized, last origin= #{lastorig}, last local= #{lastlocal}, last= #{@last}"
   end
 
-  def backend(last, s=1000)
+  def backend(last, s=150)
     log = Log4r::Logger['olccs']
     log.debug "##~~BEGIN BACKEND ~~##"
     log.debug "last => {#{last}}"

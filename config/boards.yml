@@ -1,12 +1,34 @@
-shoop:
-  getURL: http://dax.sveetch.net/tribune/remote.xml
-  postURL: http://dax.sveetch.net/tribune/post.xml
+--- 
+batavie: 
+  getURL: "http://batavie.leguyader.eu/remote.xml"
+  postURL: "http://batavie.leguyader.eu/index.php/add"
+  postParameter: message
   lastIdParameter: last
-  postParameter: content
-  alias: "sveetch,dax"
-
-euromussels:
-  getURL: http://euromussels.eu/?q=tribune.xml
-  postURL: http://euromussels.eu/?q=tribune/post
+bouchot: 
+  getURL: "http://bouchot.org/tribune/remote"
+  lastIdParameter: last
+  postParameter: missive
+  postURL: "http://bouchot.org/tribune/post_coincoin"
+dlfp: 
+  getURL: "http://linuxfr.org/board/index.xml"
+  postURL: "http://linuxfr.org/board"
+  postParameter: board[message]
+euromussels: 
+  getURL: "http://euromussels.eu/?q=tribune.xml"
   lastIdParameter: last_id
   postParameter: message
+  postURL: "http://euromussels.eu/?q=tribune/post"
+moules: 
+  getURL: "http://moules.org/board/backend"
+  postParameter: message
+  postURL: "http://moules.org/board/add"
+see: 
+  getURL: "http://tout.essaye.sauf.ca/tribune.xml"
+  postParameter: message
+  postURL: "http://tout.essaye.sauf.ca/tribune/post"
+shoop: 
+  alias: "sveetch,dax"
+  getURL: "http://dax.sveetch.net/tribune/remote.xml"
+  lastIdParameter: last
+  postParameter: content
+  postURL: "http://dax.sveetch.net/tribune/post.xml"
