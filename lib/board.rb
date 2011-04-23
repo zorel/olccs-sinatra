@@ -45,43 +45,41 @@ class Board
     log.info "Board #{@name} initialized, last origin= #{lastorig}, last local= #{lastlocal}, last= #{@last}"
   end
 
-  def backend(last, s=150)
+  def backend(last=0, s=150)
     log = Log4r::Logger['olccs']
     log.debug "##~~BEGIN BACKEND ~~##"
     log.debug "last => {#{last}}"
-    if last != nil then
-      q= {
-        "query" => {
-          "range" => {
-            "id" => { 
-              "from" => last
-            }
+    q = {
+      "query" => {
+        "range" => {
+          "id" => { 
+            "from" => last
           }
-        },
-        "sort" => [
-                   {"id" => {:reverse => true}}
-                  ],
-        "size" => s
-      }
-    else
-      q = {
-        "query" => {
-          "match_all" => {}
-        },
-        "sort" => [
-                   {"id" => {:reverse => true}}
-                  ],
-        "size" => s
-      }
-    end
+        }
+      },
+      "sort" => [
+                 {"id" => {:reverse => true}}
+                ],
+      "size" => s
+    }
     log.debug q.to_json
     log.debug "##~~END BACKEND ~~##"
     r = ES.new.query(@name,q.to_json)
     r
   end
 
-  def xml(last)
-    @posts = JSON.parse(backend(last))['hits']['hits']
+  def json(last=0)
+    backend(last)
+  end
+
+  def xml(last=0)
+    log = Log4r::Logger['olccs']
+    begin
+      @posts = JSON.parse(backend(last))['hits']['hits']
+    rescue
+      log.error "backend fucked up: #{last} for #{@name}"
+      @posts = {}
+    end
     builder = Nokogiri::XML::Builder.new do |xml|
       xml.board(:site => "test") {
         @posts.each { |p|
@@ -103,7 +101,47 @@ class Board
     return builder.to_xml
   end
 
+  def historique(from, to)
+    q = {
+      "query" => {
+        "range" => {
+          "time" => { 
+            "from" => from,
+            "to" => to
+          }
+        }
+      },
+      "sort" => [
+                 {"id" => {:reverse => true}}
+                ],
+      "size" => 86400
+    }
+    
+    ES.new.query(@name, q.to_json)
+  end
 
+  def histogramme
+    if !["minute", "hour", "day", "month", "year"].include?(interval) then
+      interval = "hour"
+    end
+    q = {
+      "query" => {
+        "match_all" => {}
+      },
+      "size" => 0,
+      "facets" => {
+        "histo1" => {
+          "date_histogram" => {
+            "field" => "time",
+            "interval" => interval
+          }
+        }
+      }
+    }
+
+    ES.new.query(@name, q.to_json)
+end
+  
   def post(cookies, ua, content)
     log = Log4r::Logger['olccs']
     log.debug "##~~ BEGIN POST #{@name} ~~##"

@@ -25,6 +25,7 @@ require_relative 'lib/post.rb'
 require_relative 'lib/board.rb'
 
 log = Log4r::Logger.new("olccs")
+log.level = Log4r::ERROR
 
 o = Log4r::RollingFileOutputter.new("f1", :filename => "./olccs.log", :maxsize => 1048576, :maxtime => 86400)
 o.formatter = Log4r::PatternFormatter.new(:pattern => "[%l] %d :: %m")
@@ -46,10 +47,13 @@ class Configuration
     
     @boards = Hash.new
     config_boards.each_pair do |b,c|
-      @boards[b] = Board.new(b,c['getURL'],c['postURL'], c['postParameter'], c['lastIdParameter'] || "last")
-      @boards[b].index
-      log.info("Board #{b} initialized")
-
+      begin
+        @boards[b] = Board.new(b,c['getURL'],c['postURL'], c['postParameter'], c['lastIdParameter'] || "last")
+        @boards[b].index
+        log.info("Board #{b} initialized")
+      rescue Exception => e
+        log.error("Board #{b} fail! #{e}")
+      end
     end
     
   end
@@ -62,8 +66,12 @@ EM.synchrony do
   EventMachine::PeriodicTimer.new(30) do
     Configuration.instance.boards.each_pair do |b,c|
       Fiber.new {
-        new,total,secs = c.index
-        log.info "#{c.name} indexed in #{secs} seconds, #{new} new posts"
+        begin
+          new,total,secs = c.index
+          log.info "#{c.name} indexed in #{secs} seconds, #{new} new posts"
+        rescue Exception => e
+          log.error "#{c.name} fucked up #{e}"
+        end
       }.resume
     end      
   end
@@ -75,7 +83,8 @@ EM.synchrony do
     use Rack::CommonLogger, Logger.new('access.log', "weekly")
     use Rack::Deflater
     use Rack::Lint
-    set :root, File.dirname(__FILE__) + '/static'
+    set :views, File.dirname(__FILE__) + '/views'
+    set :public, File.dirname(__FILE__) + '/static'
 
     configure do
       set(:boards) {
@@ -91,10 +100,22 @@ EM.synchrony do
     
     get '/:n/json' do |n|
       content_type :json
-      result = settings.boards[n].backend
+      result = settings.boards[n].json
       body result
     end
  
+    get '/:n/historique' do |n|
+      content_type :html
+
+      @from = params[:from] || (Time.now-3600).strftime("%Y%m%d%H%M%S")
+      @to = params[:to] || Time.now.strftime("%Y%m%d%H%M%S")
+      @list = settings.boards[n].historique(@from,@to)
+
+      body do
+        erb :historique
+      end
+    end
+    
     post '/:n/post' do |n|
       content_type :text
       result = settings.boards[n].post(request.cookies, request.user_agent)
@@ -123,7 +144,10 @@ EM.synchrony do
         end
       end
 
-      b = settings.boards.select { |k, v| URI.parse(v.getURL).host == board_name }
+      b = settings.boards.select { |k, v|
+        URI.parse(v.getURL).host == board_name
+      }
+      
       result = b.to_a[0][1].xml(l) 
       body result
     end
@@ -135,7 +159,6 @@ EM.synchrony do
 
       board_name = URI.parse(params[:posturl]).host
       b = settings.boards.select { |k, v|
-        log.debug "+> #{v.postURL}"
         URI.parse(v.postURL).host == board_name
       }.to_a[0][1]
       b.post(params[:cookie], params[:ua], params[:postdata])
