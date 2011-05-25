@@ -104,7 +104,7 @@ EM.synchrony do
       body result
     end
  
-    get '/:n/historique' do |n|
+    get '/:n/historique.plop' do |n|
       content_type :html
 
       @from = params[:from] || (Time.now-3600).strftime("%Y%m%d%H%M%S")
@@ -113,6 +113,17 @@ EM.synchrony do
 
       body do
         erb :historique
+      end
+    end
+
+    get '/:n/stats.plop' do |n|
+      content_type :html
+
+      @stats = settings.boards[n].stats
+      #puts @stats
+      
+      body do
+        erb :stats
       end
     end
     

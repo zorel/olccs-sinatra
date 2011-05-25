@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'httparty'
 require 'nokogiri'
+require 'hpricot'
 require 'json'
 
 require 'log4r'
@@ -120,25 +121,22 @@ class Board
     ES.new.query(@name, q.to_json)
   end
 
-  def histogramme
-    if !["minute", "hour", "day", "month", "year"].include?(interval) then
-      interval = "hour"
-    end
+  def stats
     q = {
       "query" => {
         "match_all" => {}
       },
       "size" => 0,
       "facets" => {
-        "histo1" => {
-          "date_histogram" => {
-            "field" => "time",
-            "interval" => interval
+        "logins" => {
+          "terms" => {
+            "field" => "login",
+            "size" => 20
           }
         }
       }
     }
-
+    #puts q.to_json
     ES.new.query(@name, q.to_json)
 end
   
@@ -168,11 +166,35 @@ end
     last_before = @last
 
     r = EventMachine::HttpRequest.new("#{@getURL}").get({ :query => {@lastid.to_sym => @last}}).response
-    response = Nokogiri::XML(r)
+    response = Nokogiri::XML(Hpricot.XML(r).to_s)
 
     response.xpath('/board/post').each do |p|
       pid = p.xpath("@id").to_s.to_i
       if pid > last_before then
+        
+        message_node = p.xpath("message")[0]
+        cdata, text, autre = false, false, false
+        message_node.children.each do |n|
+          if n.class == Nokogiri::XML::CDATA
+            cdata = true
+            break;
+          elsif n.class == Nokogiri::XML::Text
+            text = true
+          elsif n.class == Nokogiri::XML::Element
+            autre = true
+            break;
+          end
+        end
+        #puts cdata, text, autre
+        if autre then
+          log.debug "AUTRE TRUC"
+          content = message_node.inner_html
+        else
+          log.debug  "CDATA or TEXT"
+          content = message_node.children[0].text
+        end
+          
+        log.debug content
         # puts "#{pid} mis en boucle"
         @last = pid if pid > @last
         posts <<  Post.new(@name,
@@ -180,7 +202,7 @@ end
                            p.xpath("@time").to_s,
                            p.xpath("info").text,
                            p.xpath("login").text,
-                           p.xpath("message").text
+                           content
                            )
       end
     end
