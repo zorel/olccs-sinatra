@@ -138,7 +138,7 @@ class Board
     }
     #puts q.to_json
     ES.new.query(@name, q.to_json)
-end
+  end
   
   def post(cookies, ua, content)
     log = Log4r::Logger['olccs']
@@ -154,6 +154,7 @@ end
         "User-Agent" => ua}
     }
     r = EventMachine::HttpRequest.new("#{@postURL}").post(b)
+    log.info r.response_header.status
     index
     log.debug "##~~ END POST #{@name} ~~##"
     return "Hello plop"

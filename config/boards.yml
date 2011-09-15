@@ -32,3 +32,20 @@ shoop:
   lastIdParameter: last
   postParameter: content
   postURL: "http://dax.sveetch.net/tribune/post.xml"
+jplop:
+  getURL: "http://tifauv.homeip.net/jplop/backend"
+  postParameter: message
+  postURL: "http://tifauv.homeip.net/jplop/post"
+finss:
+  getURL: "http://finss.free.fr/drupal/?q=tribune.xml"
+  lastIdParameter: last_id
+  postParameter: message
+  postURL: "http://finss.free.fr/drupal/?q=tribune/post"
+olo:
+  getURL: "http://board.olivierl.org/remote.xml"
+  postURL: "http://board.olivierl.org/add.php"
+  postParameter: message
+ratatouille:
+  getURL: "http://ratatouille.leguyader.eu:80//data/backend.xml"
+  postURL: "http://ratatouille.leguyader.eu:80//add.php"
+  postParameter: message

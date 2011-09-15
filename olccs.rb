@@ -80,7 +80,7 @@ EM.synchrony do
     
 
     use Rack::FiberPool
-    use Rack::CommonLogger, Logger.new('access.log', "weekly")
+    #use Rack::CommonLogger, Logger.new('access.log', "weekly")
     use Rack::Deflater
     use Rack::Lint
     set :views, File.dirname(__FILE__) + '/views'
@@ -158,7 +158,7 @@ EM.synchrony do
       b = settings.boards.select { |k, v|
         URI.parse(v.getURL).host == board_name
       }
-      
+
       result = b.to_a[0][1].xml(l) 
       body result
     end
@@ -176,6 +176,16 @@ EM.synchrony do
       body "plop"
     end
     
+    get '/totoz.php' do
+      content_type :xml
+      log = Log4r::Logger['olccs']
+      log.error ">> GET TOTOZ #{params[:url]}"
+
+      url = params[:url].sub(/\{question\}/,'?')
+      r = EventMachine::HttpRequest.new(url).get
+      body r.response
+    end
+
     get '/' do
       body 'Hello World!'
     end
