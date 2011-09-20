@@ -69,6 +69,47 @@ class Board
     r
   end
 
+  def search(query, s=150)
+    log = Log4r::Logger['olccs']
+    q = {
+      "query" => {
+        "query_string" => {
+          "default_field" => "message",
+          "query" => query
+        }
+      },
+      "size" => s
+    }
+
+    r = ES.new.query(@name, q.to_json)
+    begin
+      @posts = JSON.parse(r)['hits']['hits']
+    rescue
+      log.error "search fucked for #{@name}"
+      @posts = {}
+    end
+    builder = Nokogiri::XML::Builder.new do |xml|
+      xml.board(:site => @name) {
+        @posts.each { |p|
+          i = p['_source']
+          xml.post(:id => i['id'], :time => i['time']) {
+            xml.info {
+              xml.text i['info']
+            }
+            xml.login {
+              xml.text i['login']
+            }
+            xml.message {
+              xml.text i['message']
+            }
+          }
+        }
+      }
+    end
+    return builder.to_xml
+
+  end
+
   def json(last=0)
     backend(last)
   end
@@ -82,7 +123,7 @@ class Board
       @posts = {}
     end
     builder = Nokogiri::XML::Builder.new do |xml|
-      xml.board(:site => "test") {
+      xml.board(:site => @name) {
         @posts.each { |p|
           i = p['_source']
           xml.post(:id => i['id'], :time => i['time']) {

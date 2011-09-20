@@ -78,6 +78,20 @@ EM.synchrony do
 
   class Olccs < Sinatra::Base
     
+  
+    def add_boards(boards)
+      
+      @builder = Nokogiri::XML::Builder.new {
+        boards {
+          boards.each do |b|
+            _xml = Nokogiri::XML(b)
+            parent.add_child(_xml.root)
+          end
+        }
+      }
+      
+      return @builder
+    end
 
     use Rack::FiberPool
     #use Rack::CommonLogger, Logger.new('access.log', "weekly")
@@ -131,6 +145,26 @@ EM.synchrony do
       content_type :text
       result = settings.boards[n].post(request.cookies, request.user_agent)
       body result
+    end
+
+    get '/backends' do
+      content_type :xml
+      boards_params = JSON.parse(params[:boards])
+      boards = Array.new
+      
+      boards_params.each do |b|
+        boards << settings.boards[b[0]].xml(b[1])
+      end
+
+      body add_boards(boards).to_xml
+    end
+
+    get '/:n/search' do |n|
+      log = Log4r::Logger['olccs']
+      content_type :xml
+      log.error("==> QUERY #{params[:query]}")
+      s = settings.boards[n].search(params[:query])
+      body s
     end
 
     get '/backend.php' do
@@ -194,4 +228,3 @@ EM.synchrony do
   Olccs.run!
 
 end
-  
