@@ -1,0 +1,28 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Stats</title>
+    <link href="layout.css" rel="stylesheet" type="text/css">
+    <script language="javascript" type="text/javascript" src="/b/js/flot/jquery.js"></script>
+ </head>
+    <body>
+<h1>Statistiques</h1>
+<ul>
+
+
+<% 
+   require 'json'
+   n=1;
+   r = JSON.parse(@stats)['facets']['logins']['terms'].collect { |h|
+%>
+   <li>[<%=n%>] Login: <%=h['term']%> => <%=h['count']%></li>
+<%
+   n = n + 1
+      }
+%>
+</li>
+</ul>
+
+ </body>
+</html>

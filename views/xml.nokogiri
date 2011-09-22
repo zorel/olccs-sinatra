@@ -1,0 +1,9 @@
+xml.boards(:site => "test") {
+  @posts.each { |p|
+    xml.post(:id => p.id, :time => p.time) {
+      xml.info {
+        p.info
+      }
+    }
+  }
+}

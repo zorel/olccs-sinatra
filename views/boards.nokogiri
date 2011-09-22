@@ -1,0 +1,14 @@
+xml.sites {
+  @boards.each_value { |b|
+    xml.site(:name => b.name) {
+      xml.module(:name => "board", :title => "tribune", :type => "application/board+xml") {
+        xml.backend(:path => b.getURL, :public => "true", :tags_encoded => "true", :refresh => 10)
+        xml.post(:method => "post", :path => b.postURL, :anonymous => "true", :max_length => 512) {
+          xml.field(:name => b.postParameter) {
+            "$m"
+          }
+        }
+      }
+    }
+  }
+}
