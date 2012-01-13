@@ -235,6 +235,25 @@ class Board
     return "Hello plop"
   end
   
+  def login(user, password, ua)
+    url = @cookieURL
+    b = {
+      :body => {
+        @userParameter.to_sym => user,
+        @pwdParameter.to_sym => password
+      },
+      :head => {
+        "Referer" => @cookieURL,
+        "User-agent" => ua
+      }
+    }
+    r = EventMachine::HttpRequest.new("#{@cookieURL}").post(b)
+    cookie = ""
+    r.callback {
+      cookie = r.response_header.cookie
+    }
+    return cookie
+  end
     
   def index
     log = Log4r::Logger['olccs']
