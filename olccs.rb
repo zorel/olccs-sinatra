@@ -148,6 +148,12 @@ EM.synchrony do
       body result
     end
 
+    cookie '/:n/login' do |n|
+      content_type :text
+      result = settings.boards[n].login(params[:user], params[:password], request.user_agent)
+      body result
+    end
+
     get '/backends' do
       content_type :xml
       boards_params = JSON.parse(params[:boards])
