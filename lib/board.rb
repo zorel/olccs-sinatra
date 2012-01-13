@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'rubygems'
 require 'httparty'
 require 'nokogiri'
@@ -9,6 +10,9 @@ include Log4r
 
 require 'em-synchrony/em-http'
 require 'em-synchrony'
+require 'cgi'
+
+require 'digest/md5'
 
 require 'pp'
 require_relative 'es.rb'
@@ -16,7 +20,7 @@ require_relative 'es.rb'
 class Board
   include HTTParty
   
-  attr_reader :name, :getURL, :postURL
+  attr_reader :name, :getURL, :postURL, :postParameter
   
    #format :xml
   parser(
@@ -75,9 +79,14 @@ class Board
       "query" => {
         "query_string" => {
           "default_field" => "message",
+          "default_operator" => "AND",
           "query" => query
         }
       },
+      "sort" => [
+                 {"id" => {:reverse => true}}
+                ],
+
       "size" => s
     }
 
@@ -162,6 +171,25 @@ class Board
     ES.new.query(@name, q.to_json)
   end
 
+  def histogramme
+    q = {
+      "query" => {
+        "match_all" => {}
+      },
+      "size" => 0,
+      "facets" => {
+        "time" => {
+          "date_histogram" => {
+            "field"=> "time",
+            "interval"=> "hour"
+          }
+        }
+      }
+    }
+    #puts q.to_json
+    ES.new.query(@name, q.to_json)
+  end
+
   def stats
     q = {
       "query" => {
@@ -181,14 +209,20 @@ class Board
     ES.new.query(@name, q.to_json)
   end
   
-  def post(cookies, ua, content)
+  def post(cookies, ua, content, request)
     log = Log4r::Logger['olccs']
     log.debug "##~~ BEGIN POST #{@name} ~~##"
 
     url = @postURL
     c = content.gsub('#{plus}#','+').gsub('#{amp}#','&').gsub('#{dcomma}#',';').gsub('#{percent}#','%')
+    i = c.index("=") || -1
+
+    if c[i+1,7] == "/olccs "
+      c = @postParameter + '=' + command(c[i+8..-1], request)
+    end
+
     b = {
-      :body => { @postParameter.to_sym => c[c.index("=")+1..-1]},
+      :body => { @postParameter.to_sym => c[i+1..-1]},
       :head => {
         "Referer" => @postURL,
         "Cookie" => cookies,
@@ -200,6 +234,7 @@ class Board
     log.debug "##~~ END POST #{@name} ~~##"
     return "Hello plop"
   end
+  
     
   def index
     log = Log4r::Logger['olccs']
@@ -255,4 +290,61 @@ class Board
     log.debug "##~~ END INDEX ~~##"
     ES.new.index(@name,posts)
   end
+  
+  def command(cmd, request)
+    if cmd[0..7] == "weather" then
+      # IP address to send to the Quova service
+      ip_address = request.ip
+
+      # API location
+      mPRODUCTION_ENDPOINT = 'api.quova.com'
+      mPRODUCTION_PORT = 80
+
+      # Your credentials
+      mAPI_KEY = '100.58dpqz32zwt5yt49wm8a'
+      mSHARED_SECRET = 'VMH3YgWn'
+      mAPI_VERSION = 'v1'
+
+      current_time = Time.now
+      timestamp = Time.now.to_i.to_s
+      sig = Digest::MD5.hexdigest( mAPI_KEY+mSHARED_SECRET+timestamp )
+
+      request_url = "/#{mAPI_VERSION}/ipinfo/#{ip_address}?apikey=#{mAPI_KEY}&sig=#{sig}&format=json"
+
+      quova = EventMachine::HttpRequest.new("http://#{mPRODUCTION_ENDPOINT}#{request_url}").get
+      r = JSON.parse(quova.response)
+      ville = r['ipinfo']['Location']['CityData']['city']
+      cp = r['ipinfo']['Location']['CityData']['postal_code']
+      pays = r['ipinfo']['Location']['CountryData']['country']
+      infos = CGI.escape("#{cp} #{ville} #{pays}")
+
+      request_url = "http://where.yahooapis.com/v1/places.q(#{infos})?appid=mwrJjKXV34HMz2t2OGPu9LNEZicvik4Ics.zk9SfwfMvPoEqD2m46eCI3ooELrj3Qoux_cw-"
+      yahoo_geoplace = EventMachine::HttpRequest.new("#{request_url}").get
+
+      xml = Nokogiri::XML(yahoo_geoplace.response)
+      woeid = xml.css("woeid")[0].content
+
+      request_url = "http://weather.yahooapis.com/forecastrss?u=c&w=#{woeid}"
+      yahoo_weather = EventMachine::HttpRequest.new("#{request_url}").get
+
+      #puts yahoo_weather.response
+      xml = Nokogiri::XML(yahoo_weather.response)
+      
+      city = xml.css("yweather|location")[0]["city"]
+      conditions = xml.css("yweather|condition")[0]
+      c_text = conditions["text"]
+      c_temp = conditions["temp"]
+      c_date = conditions["date"]
+
+      forecast1 = xml.css("yweather|forecast")[0]
+      f1_text = forecast1["text"]
+      f1_min = forecast1["low"]
+      f1_max = forecast1["high"]
+      f1_date = forecast1["date"]
+
+      
+    end
+    return "Météo pour: <b>#{city}</b>: #{c_text}, #{c_temp}°C // Prévisions pour demain: #{f1_text}, #{f1_min}°C / #{f1_max}°C"
+  end
+
 end

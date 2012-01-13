@@ -134,6 +134,7 @@ EM.synchrony do
       content_type :html
 
       @stats = settings.boards[n].stats
+      @histogramme = settings.boards[n].histogramme
       #puts @stats
       
       body do
@@ -143,7 +144,7 @@ EM.synchrony do
     
     post '/:n/post' do |n|
       content_type :text
-      result = settings.boards[n].post(request.cookies, request.user_agent)
+      result = settings.boards[n].post(request.cookies, request.user_agent,params[:message],request)
       body result
     end
 
@@ -206,7 +207,7 @@ EM.synchrony do
       b = settings.boards.select { |k, v|
         URI.parse(v.postURL).host == board_name
       }.to_a[0][1]
-      b.post(params[:cookie], params[:ua], params[:postdata])
+      b.post(params[:cookie], params[:ua], params[:postdata], request)
       body "plop"
     end
     
@@ -220,8 +221,12 @@ EM.synchrony do
       body r.response
     end
 
-    get '/' do
-      body 'Hello World!'
+    get '/boards.xml' do
+      content_type :xml
+      @boards = settings.boards
+      body do
+        nokogiri :boards
+      end
     end
   end
 

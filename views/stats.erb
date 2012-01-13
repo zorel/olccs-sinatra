@@ -5,15 +5,33 @@
     <title>Stats</title>
     <link href="layout.css" rel="stylesheet" type="text/css">
     <script language="javascript" type="text/javascript" src="/b/js/flot/jquery.js"></script>
+    <script language="javascript" type="text/javascript" src="/b/js/flot/jquery.flot.js"></script>
+    <script language="javascript" type="text/javascript" src="/b/js/flot/jquery.flot.navigate.js"></script>
  </head>
     <body>
 <h1>Statistiques</h1>
+<div id="placeholder" style="width:1000px;height:500px;"></div>
+
+
+		
+<script type="text/javascript">		
+ $.plot($("#placeholder"), [ <%=JSON.parse(@histogramme)['facets']['time']['entries'].collect { |t| [t['time'], t['count']]}%> ],
+ { xaxis: { mode: "time" },
+ zoom: {
+   interactive: true
+ },
+ pan: {
+   interactive: true
+ }});
+</script>
+
 <ul>
 
 
 <% 
    require 'json'
    n=1;
+
    r = JSON.parse(@stats)['facets']['logins']['terms'].collect { |h|
 %>
    <li>[<%=n%>] Login: <%=h['term']%> => <%=h['count']%></li>
