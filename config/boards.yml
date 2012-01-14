@@ -4,48 +4,81 @@ batavie:
   postURL: "http://batavie.leguyader.eu/index.php/add"
   postParameter: message
   lastIdParameter: last
+  cookieURL: "http://batavie.leguyader.eu/user.php/login"
+  userParameter: login
+  pwdParameter: passwd
 bouchot: 
   getURL: "http://bouchot.org/tribune/remote"
   lastIdParameter: last
   postParameter: missive
   postURL: "http://bouchot.org/tribune/post_coincoin"
+  cookieURL: "http://bouchot.org/account/login"
+  userParameter: login
+  pwdParameter: password
 dlfp: 
   getURL: "http://linuxfr.org/board/index.xml"
   postURL: "http://linuxfr.org/board"
   postParameter: board[message]
+  cookieURL: "https://linuxfr.org/compte/connexion"
+  userParameter: account[login]
+  pwdParameter: account[password]
 euromussels: 
   getURL: "http://euromussels.eu/?q=tribune.xml"
   lastIdParameter: last_id
   postParameter: message
   postURL: "http://euromussels.eu/?q=tribune/post"
+  cookieURL: "http://euromussels.eu/tribune"
+  userParameter: name
+  pwdParameter: pass
 moules: 
   getURL: "http://moules.org/board/backend"
   postParameter: message
   postURL: "http://moules.org/board/add"
+  cookieURL: "http://moules.org/board"
+  userParameter: name
+  pwdParameter: pass
 see: 
   getURL: "http://tout.essaye.sauf.ca/tribune.xml"
   postParameter: message
   postURL: "http://tout.essaye.sauf.ca/tribune/post"
+  cookieURL: "http://tout.essaye.sauf.ca/user/login"
+  userParameter: name
+  pwdParameter: pass
 shoop: 
   alias: "sveetch,dax"
   getURL: "http://dax.sveetch.net/tribune/remote.xml"
   lastIdParameter: last
   postParameter: content
   postURL: "http://dax.sveetch.net/tribune/post.xml"
+  cookieURL: "http://dax.sveetch.net/accounts/login"
+  userParameter: username
+  pwdParameter: password
 jplop:
   getURL: "http://tifauv.homeip.net/jplop/backend"
   postParameter: message
   postURL: "http://tifauv.homeip.net/jplop/post"
+  cookieURL: "http://tifauv.homeip.net/jplop/logon"
+  userParameter: username
+  pwdParameter: password
 finss:
   getURL: "http://finss.free.fr/drupal/?q=tribune.xml"
   lastIdParameter: last_id
   postParameter: message
   postURL: "http://finss.free.fr/drupal/?q=tribune/post"
+  cookieURL: "http://finss.free.fr/drupal/?q=tribune"
+  userParameter: name
+  pwdParameter: pass
 olo:
   getURL: "http://board.olivierl.org/remote.xml"
   postURL: "http://board.olivierl.org/add.php"
   postParameter: message
+  cookieURL: "http://board.olivierl.org/user/login.php"
+  userParameter: login
+  pwdParameter: passwd
 ratatouille:
   getURL: "http://ratatouille.leguyader.eu:80//data/backend.xml"
   postURL: "http://ratatouille.leguyader.eu:80//add.php"
   postParameter: message
+  cookieURL: "http://ratatouille.leguyader.eu:80/loginA.php"
+  userParameter: login
+  pwdParameter: password
