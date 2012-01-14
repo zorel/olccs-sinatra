@@ -148,7 +148,7 @@ EM.synchrony do
       body result
     end
 
-    cookie '/:n/login' do |n|
+    post '/:n/login' do |n|
       content_type :text
       result = settings.boards[n].login(params[:user], params[:password], request.user_agent)
       body result
