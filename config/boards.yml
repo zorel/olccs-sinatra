@@ -5,6 +5,7 @@ batavie:
   postParameter: message
   lastIdParameter: last
   cookieURL: "http://batavie.leguyader.eu/user.php/login"
+  cookieName: [unique_id, md5]
   userParameter: login
   pwdParameter: passwd
 bouchot: 
@@ -13,6 +14,7 @@ bouchot:
   postParameter: missive
   postURL: "http://bouchot.org/tribune/post_coincoin"
   cookieURL: "http://bouchot.org/account/login"
+  cookieName: [_tribune_session]
   userParameter: login
   pwdParameter: password
 dlfp: 
@@ -20,6 +22,8 @@ dlfp:
   postURL: "http://linuxfr.org/board"
   postParameter: board[message]
   cookieURL: "https://linuxfr.org/compte/connexion"
+  cookieName: [remember_account_token]
+  rememberMeParameter: account[remember_me]
   userParameter: account[login]
   pwdParameter: account[password]
 euromussels: 
@@ -28,6 +32,7 @@ euromussels:
   postParameter: message
   postURL: "http://euromussels.eu/?q=tribune/post"
   cookieURL: "http://euromussels.eu/tribune"
+  cookieName: [SESS.*]
   userParameter: name
   pwdParameter: pass
 moules: 
@@ -35,6 +40,7 @@ moules:
   postParameter: message
   postURL: "http://moules.org/board/add"
   cookieURL: "http://moules.org/board"
+  cookieName: [SESS.*]
   userParameter: name
   pwdParameter: pass
 see: 
@@ -42,6 +48,7 @@ see:
   postParameter: message
   postURL: "http://tout.essaye.sauf.ca/tribune/post"
   cookieURL: "http://tout.essaye.sauf.ca/user/login"
+  cookieName: [SESS.*]
   userParameter: name
   pwdParameter: pass
 shoop: 
@@ -50,7 +57,8 @@ shoop:
   lastIdParameter: last
   postParameter: content
   postURL: "http://dax.sveetch.net/tribune/post.xml"
-  cookieURL: "http://dax.sveetch.net/accounts/login"
+  cookieURL: "http://dax.sveetch.net/accounts/login/"
+  cookieName: [shoop_sessionid]
   userParameter: username
   pwdParameter: password
 jplop:
@@ -58,6 +66,7 @@ jplop:
   postParameter: message
   postURL: "http://tifauv.homeip.net/jplop/post"
   cookieURL: "http://tifauv.homeip.net/jplop/logon"
+  cookieName: [JSESSIONID]
   userParameter: username
   pwdParameter: password
 finss:
@@ -66,6 +75,8 @@ finss:
   postParameter: message
   postURL: "http://finss.free.fr/drupal/?q=tribune/post"
   cookieURL: "http://finss.free.fr/drupal/?q=tribune"
+  cookieName: [SESS.*]
+  rememberMeParameter: persistent_login
   userParameter: name
   pwdParameter: pass
 olo:
@@ -73,6 +84,7 @@ olo:
   postURL: "http://board.olivierl.org/add.php"
   postParameter: message
   cookieURL: "http://board.olivierl.org/user/login.php"
+  cookieName: [unique_id]
   userParameter: login
   pwdParameter: passwd
 ratatouille:
@@ -80,5 +92,6 @@ ratatouille:
   postURL: "http://ratatouille.leguyader.eu:80//add.php"
   postParameter: message
   cookieURL: "http://ratatouille.leguyader.eu:80/loginA.php"
+  cookieName: [faab_id]
   userParameter: login
   pwdParameter: password

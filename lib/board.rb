@@ -14,13 +14,15 @@ require 'cgi'
 
 require 'digest/md5'
 
+require 'cookiejar/cookie_validation'
+
 require 'pp'
 require_relative 'es.rb'
 
 class Board
   include HTTParty
   
-  attr_reader :name, :getURL, :postURL, :postParameter
+  attr_reader :name, :getURL, :postURL, :postParameter, :cookieURL, :cookieName, :rememberMeParameter, :userParameter, :pwdParameter
   
    #format :xml
   parser(
@@ -29,13 +31,18 @@ class Board
          end
          )
 
-  def initialize(name, getURL, postURL, postParameter, lastid)
+  def initialize(name, getURL, postURL, postParameter, lastid, cookieURL, cookieName, rememberMeParameter, userParameter, pwdParameter)
     log = Log4r::Logger['olccs']
     @getURL = getURL
     @postURL = postURL
     @name = name
     @lastid = lastid
     @postParameter = postParameter
+    @cookieURL = cookieURL
+    @cookieName = cookieName
+    @rememberMeParameter = rememberMeParameter
+    @userParameter = userParameter
+    @pwdParameter = pwdParameter
 
     lastorig = self.class.get(@getURL).xpath('/board/post[position()=1]/@id').to_s.to_i
     
@@ -236,11 +243,12 @@ class Board
   end
   
   def login(user, password, ua)
-    url = @cookieURL
+    cookies = []
     b = {
       :body => {
         @userParameter.to_sym => user,
-        @pwdParameter.to_sym => password
+        @pwdParameter.to_sym => password,
+        @rememberMeParameter.to_sym => "1"
       },
       :head => {
         "Referer" => @cookieURL,
@@ -248,11 +256,24 @@ class Board
       }
     }
     r = EventMachine::HttpRequest.new("#{@cookieURL}").post(b)
-    cookie = ""
+
     r.callback {
-      cookie = r.response_header.cookie
+      recvcookies = r.response_header.cookie
+      if recvcookies.is_a? Array then
+        recvcookies.each do |cookie|
+          c = CookieJar::CookieValidation.parse_set_cookie(cookie)
+          if @cookieName.count { |name| c[:name] =~ Regexp.new(name) } > 0 then
+            cookies << c
+          end
+        end
+      else
+        c = CookieJar::CookieValidation.parse_set_cookie(recvcookies)
+        if @cookieName.count { |name| c[:name] =~ Regexp.new(name) } > 0 then
+          cookies << c
+        end
+      end
     }
-    return cookie
+    return cookies.to_json
   end
     
   def index
