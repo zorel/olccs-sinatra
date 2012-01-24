@@ -22,7 +22,7 @@ dlfp:
   postURL: "http://linuxfr.org/board"
   postParameter: board[message]
   cookieURL: "https://linuxfr.org/compte/connexion"
-  cookieName: [remember_account_token]
+  cookieName: [linuxfr.org_session]
   rememberMeParameter: account[remember_me]
   userParameter: account[login]
   pwdParameter: account[password]
