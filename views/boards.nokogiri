@@ -8,6 +8,14 @@ xml.sites {
             "$m"
           }
         }
+        xml.login(:method => "post", :path => b.cookieURL) {
+          xml.username(:name => b.userParameter)
+          xml.password(:name => b.pwdParameter)
+          xml.remember(:name => b.rememberMeParameter)
+          b.cookieName.each { |c|
+            xml.cookie(:name => c)
+          }
+        }
       }
     }
   }
