@@ -48,7 +48,7 @@ class Configuration
     @boards = Hash.new
     config_boards.each_pair do |b,c|
       begin
-        @boards[b] = Board.new(b,c['getURL'],c['postURL'], c['postParameter'], c['lastIdParameter'] || "last")
+        @boards[b] = Board.new(b,c['getURL'],c['postURL'], c['postParameter'], c['lastIdParameter'] || "last", c['cookieURL'], c['cookieName'], c['rememberMeParameter'] || "remember_me", c['userParameter'], c['pwdParameter'])
         @boards[b].index
         log.info("Board #{b} initialized")
       rescue Exception => e
