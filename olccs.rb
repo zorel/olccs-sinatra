@@ -234,6 +234,12 @@ EM.synchrony do
         nokogiri :boards
       end
     end
+
+    get '/:n/index' do |n|
+      content_type :text
+      settings.boards[n].index
+      body "done"
+    end
   end
 
   Olccs.run!
