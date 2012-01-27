@@ -273,7 +273,7 @@ class Board
         end
       end
     }
-    return cookies.to_json
+    return cookies
   end
     
   def index
