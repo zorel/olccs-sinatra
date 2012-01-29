@@ -151,7 +151,7 @@ EM.synchrony do
     post '/:n/login' do |n|
       content_type :text
       settings.boards[n].login(params[:user], params[:password], request.user_agent).each do |cookie|
-        response.set_cookie(cookie[:name], :value => cookie[:value], :domain => request.host, :path => request.path.split('/')[0..-2].join('/'), :expires => cookie[:expires_at])
+        response.set_cookie(cookie[:name], :value => CGI::unescape(cookie[:value]), :domain => request.host, :path => request.path.split('/')[0..-2].join('/'), :expires => cookie[:expires_at])
       end
       body "OK"
     end
